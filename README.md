@@ -555,10 +555,3 @@ npm install
 └── README.md                           # This file
 ```
 
-## License
-
-MIT
-
----
-
-**Built for GovTech Interview Assessment - March 2026**
