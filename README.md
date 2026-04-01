@@ -1,4 +1,4 @@
-# Gift Redemption System (Production-Grade Node.js)
+# Gift Redemption System
 
 A robust gift redemption service built with Express.js, featuring comprehensive input validation, error recovery, race condition handling, and support for multiple storage backends (Local JSON and DynamoDB).
 
@@ -14,6 +14,44 @@ A robust gift redemption service built with Express.js, featuring comprehensive 
 ✅ **Multiple Storage Backends** - Local file storage (dev) or DynamoDB (production)  
 ✅ **Comprehensive Tests** - Unit, integration, and concurrency tests  
 ✅ **Configuration Management** - Environment-based config with validation  
+
+## Project Development
+
+### Architecture & Design by Me | Implementation with AI Assistance
+
+**Development Split:**
+- **Architecture & Design**: Conceived and designed entirely by me - defining the three-table structure, pre-processed collections, atomic write patterns, and overall system design using Amazon web services (AWS).
+- **Implementation**: Executed with AI assistance - code generation, testing, documentation, and refinement
+- **Quality Assurance**: Comprehensive testing (75+ test cases), syntax verification, and production readiness review
+
+This project demonstrates the complementary strengths: **Human design thinking** paired with **AI implementation efficiency**. The architectural decisions reflect real-world concerns (race conditions, performance, scalability), while AI handled the repetitive coding tasks, allowing focus on what matters most - the design.
+
+**The core architectural decisions and design patterns** that drive this system are the result of my thoughtful product engineering:
+
+#### Core Design Contributions
+
+**1. Three-Table Database Design for Race-Condition Prevention & Fast Team Member Lookup**
+- The redemption system uses a three-table architecture (all_staff, team_member_count, redemption_status):
+  - **all_staff**: Staff registry with team assignments
+  - **team_member_count**: Pre-calculated member counts per team (enables O(1) instant lookup)
+  - **redemption_status**: Tracks redeemed teams with atomic writes
+- This eliminates expensive table scans - instead of querying the staff table and counting members, the team_member_count table provides instant access to member counts
+- Prevents double redemptions via atomic conditional writes - only one redemption per team can succeed, even under concurrent requests from multiple staff members
+- The conditional write pattern `ConditionExpression: 'attribute_not_exists(team_name)'` guarantees atomicity without distributed locks
+
+**2. Pre-processed Staff Collections & Dedicated Team Count Table for Real-Time Performance**
+- Staff data is pre-processed and stored in a dedicated `all_staff` collection, separate from redemption logic and counting concerns
+- A separate **`team_member_count` table is pre-calculated and maintained**, storing cached member counts per team
+- This design eliminates need for expensive COUNT() or table scan operations during redemption - just a single key lookup in team_member_count table
+- Allows instant retrieval of team size during redemption requests - critical for determining voucher/coupon inventory allocation
+- Instead of calculating member counts on-the-fly (which would require scanning all staff records), the system performs a direct O(1) lookup to immediately determine team size and available resources
+
+**3. Separation of Concerns**
+- Staff Management Service handles lifecycle (add, delete, update teams)
+- Redemption Service orchestrates the multi-table query pattern
+- Each repository is independently testable and swappable (local or DynamoDB)
+
+These architectural decisions prioritize **data integrity**, **performance**, and **scalability** for production gift redemption workflows.
 
 ## Architecture
 
@@ -554,29 +592,3 @@ npm install
 ├── package.json
 └── README.md                           # This file
 ```
-
-## Project Development
-
-### AI-Assisted Development with Core Architecture by Designer
-
-This project was developed with AI assistance for code implementation, testing, and documentation. However, the **core architectural decisions and design patterns** are the result of thoughtful product design:
-
-#### Core Design Contributions
-
-**1. Three-Table Database Design for Race-Condition Prevention**
-- The redemption system uses a three-table architecture (all_staff, team_member_count, redemption_status) to prevent double redemptions via atomic conditional writes
-- This ensures that only one redemption per team can succeed, even under concurrent requests from multiple staff members
-- The conditional write pattern `ConditionExpression: 'attribute_not_exists(team_name)'` guarantees atomicity without distributed locks
-
-**2. Pre-processed Staff Collections for Real-Time Performance**
-- Staff data is pre-processed and stored in a dedicated collection, separate from redemption logic
-- Team member counts are pre-calculated and cached, allowing instant retrieval during redemption requests
-- This design is critical for production systems where redemption speed is important and voucher/coupon quantities depend on team size
-- Instead of calculating member counts on-the-fly, the system can immediately determine if enough resources are available for the team
-
-**3. Separation of Concerns**
-- Staff Management Service handles lifecycle (add, delete, update teams)
-- Redemption Service orchestrates the multi-table query pattern
-- Each repository is independently testable and swappable (local or DynamoDB)
-
-These architectural decisions prioritize **data integrity**, **performance**, and **scalability** for production gift redemption workflows.
