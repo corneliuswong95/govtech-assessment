@@ -554,3 +554,29 @@ npm install
 ├── package.json
 └── README.md                           # This file
 ```
+
+## Project Development
+
+### AI-Assisted Development with Core Architecture by Designer
+
+This project was developed with AI assistance for code implementation, testing, and documentation. However, the **core architectural decisions and design patterns** are the result of thoughtful product design:
+
+#### Core Design Contributions
+
+**1. Three-Table Database Design for Race-Condition Prevention**
+- The redemption system uses a three-table architecture (all_staff, team_member_count, redemption_status) to prevent double redemptions via atomic conditional writes
+- This ensures that only one redemption per team can succeed, even under concurrent requests from multiple staff members
+- The conditional write pattern `ConditionExpression: 'attribute_not_exists(team_name)'` guarantees atomicity without distributed locks
+
+**2. Pre-processed Staff Collections for Real-Time Performance**
+- Staff data is pre-processed and stored in a dedicated collection, separate from redemption logic
+- Team member counts are pre-calculated and cached, allowing instant retrieval during redemption requests
+- This design is critical for production systems where redemption speed is important and voucher/coupon quantities depend on team size
+- Instead of calculating member counts on-the-fly, the system can immediately determine if enough resources are available for the team
+
+**3. Separation of Concerns**
+- Staff Management Service handles lifecycle (add, delete, update teams)
+- Redemption Service orchestrates the multi-table query pattern
+- Each repository is independently testable and swappable (local or DynamoDB)
+
+These architectural decisions prioritize **data integrity**, **performance**, and **scalability** for production gift redemption workflows.

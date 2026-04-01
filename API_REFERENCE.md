@@ -20,7 +20,7 @@ Redeem a gift for a staff member. Queries three tables and returns member count.
 **Request:**
 ```json
 {
-  "staff_pass_id": "string (1-100 chars, required)"
+  "staff_pass_id": "string"
 }
 ```
 
@@ -365,7 +365,7 @@ Location: `all_staff` table or `staff.json`
 | Field | Type | Indexed | Example |
 |---|---|---|---|
 | staff_pass_id | string | PK | STAFF_H123804820G |
-| team_name | string | GSI | BASS, RUST |
+| team_name | string | - | BASS, RUST |
 | created_at | number | - | 1623772799000 |
 
 ### Team Member Count
@@ -442,67 +442,6 @@ Key logs to watch:
 
 ---
 
-## Testing Checklist
-
-### Redemption Tests
-- [ ] Valid redemption returns 200 with team_member_count
-- [ ] Duplicate returns 409
-- [ ] Invalid staff returns 400
-- [ ] Bad input returns 400
-- [ ] Request ID in all responses
-- [ ] Retry-After header on 409
-
-### Staff Management Tests
-- [ ] POST /staff creates staff and increments count
-- [ ] GET /staff returns all staff
-- [ ] GET /staff/:id returns specific staff
-- [ ] DELETE /staff removes staff and decrements count
-- [ ] DELETE /staff with redemption returns 206 PARTIAL
-- [ ] GET /staff/team/:team returns team members and stats
-
-### Concurrency Tests
-- [ ] Concurrent redemptions handled (only one succeeds)
-- [ ] Concurrent staff additions work
-- [ ] Race condition prevention verified
-
-### Data Integrity Tests
-- [ ] Member count matches staff count (per team)
-- [ ] Staff references are valid
-- [ ] No orphaned redemptions
-- [ ] All three tables stay in sync
-
----
-
-## Production Checklist
-
-- [ ] STORAGE_MODE=dynamo
-- [ ] LOG_LEVEL=warn
-- [ ] DynamoDB tables created (3 tables)
-- [ ] AWS IAM role configured with DynamoDB permissions
-- [ ] CloudWatch monitoring enabled
-- [ ] Alerts set up for 5xx errors
-- [ ] Rate limiting enabled
-- [ ] CORS configured (if needed)
-- [ ] HTTPS/TLS enabled
-- [ ] Backup strategy for all three tables
-- [ ] Monitoring queries for data consistency
-- [ ] Deployment tested with 100+ concurrent requests
-
----
-
-## Troubleshooting
-
-| Issue | Cause | Solution |
-|---|---|---|
-| Connection refused | Server not running | `npm start` |
-| 400 VALIDATION_ERROR | Bad input format | Check request JSON |
-| 400 INVALID_STAFF | Unknown staff | Use staff from all_staff table |
-| 409 ALREADY_REDEEMED | Same team twice | Wait or use different staff |
-| 206 DELETE_PARTIAL | Staff has redemption | Review redemption record first |
-| 500 INTERNAL_ERROR | DB unavailable | Check DynamoDB/file permissions |
-| Member count wrong | Tables out of sync | Run consistency check query |
-
----
 
 ## See Also
 
