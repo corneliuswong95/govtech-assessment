@@ -27,7 +27,6 @@ This project demonstrates the complementary strengths: **Human design thinking**
 - The conditional write pattern `ConditionExpression: 'attribute_not_exists(team_name)'` guarantees atomicity without distributed locks
 
 **2. Pre-processed Staff Collections & Dedicated Team Count Table for Real-Time Performance**
-- Staff data is pre-processed and stored in a dedicated `all_staff` collection, separate from redemption logic and counting concerns
 - A separate **`team_member_count` table is pre-calculated and maintained**, storing cached member counts per team
 - This design eliminates need for expensive COUNT() or table scan operations during redemption - just a single key lookup in team_member_count table
 - Allows instant retrieval of team size during redemption requests - critical for determining voucher/coupon inventory allocation
@@ -452,88 +451,6 @@ npm test -- --testNamePattern="Retry Logic"
 npm test -- --coverage
 ```
 
-## Architecture Decisions
-
-### Why Async/Await?
-
-- **Readability**: Cleaner than promise chains
-- **Error Handling**: Single try/catch for async operations
-- **Performance**: Non-blocking I/O at all layers
-- **Error Context**: Stack traces preserved through async calls
-
-### Why Exponential Backoff?
-
-- **Transient Failures**: DynamoDB throttling often self-resolves quickly
-- **Thundering Herd Prevention**: Jitter prevents synchronized retries
-- **User Experience**: Automatic recovery without client retry logic
-- **Cost Efficiency**: Reduces failed requests on heavily loaded systems
-
-### Why Atomic DynamoDB Writes?
-
-- **Race Condition Prevention**: No need for distributed locks
-- **Strong Consistency**: Atomicity guaranteed at database level
-- **Low Latency**: Single round-trip, no additional queries
-- **Production-Ready**: Handles millions of concurrent requests
-
-### Why Custom Error Classes?
-
-- **Type Safety**: Catch specific error types
-- **HTTP Mapping**: Each error type has clear HTTP status
-- **Context Preservation**: Error details available throughout call stack
-- **Logging**: Distinguishes business logic errors from system errors
-
-## Development
-
-### Adding New Endpoints
-
-1. Create middleware (validation, auth, etc.)
-2. Add route handler in `src/app.js`
-3. Define request/response types
-4. Add error handling
-5. Write tests in `test/app.test.js`
-
-### Modifying Redemption Logic
-
-Edit `src/services/redemptionService.js`. Service orchestrates:
-- Staff validation via `staffRepo.getTeam(staffPassId)`
-- Redemption creation via `redemptionRepo.createRedemption(team, staffPassId)`
-
-### Adding Storage Backend
-
-1. Create new repository class implementing:
-   - `async createRedemption(team, staffPassId)` → `{success, reason?}`
-   - `async exists(team)` → `boolean`
-2. Update `src/app.js` initialization
-3. Add tests in `test/app.test.js`
-
-## Troubleshooting
-
-### Issue: "DYNAMO_TABLE is required"
-
-**Solution**: Set `DYNAMO_TABLE` environment variable:
-```bash
-export DYNAMO_TABLE=redemptions
-npm start
-```
-
-### Issue: "Staff CSV not found"
-
-**Solution**: Ensure `data/staff.csv` exists with proper format.
-
-### Issue: "DynamoDB request failed after retries"
-
-**Solution**: 
-- Check AWS credentials and permissions
-- Verify DynamoDB table exists with `team_name` as partition key
-- Check network connectivity to DynamoDB
-
-### Issue: Tests fail with "module not found"
-
-**Solution**:
-```bash
-npm install
-```
-
 ## Performance
 
 - **Concurrent Requests**: DynamoDB can handle thousands (mutable based on provisioned capacity)
@@ -548,19 +465,6 @@ npm install
 - ✅ Request IDs enable audit trails
 - ✅ AWS SDK credentials via environment variables (never hardcoded)
 - ⚠️  Production: Use IAM roles instead of access keys
-
-## Production Checklist
-
-- [ ] Use DynamoDB (not local storage)
-- [ ] Enable CloudWatch logging
-- [ ] Set `NODE_ENV=production`
-- [ ] Reduce `LOG_LEVEL` to `warn` or `error`
-- [ ] Use AWS IAM roles (not access keys)
-- [ ] Set up DynamoDB autoscaling
-- [ ] Monitor DynamoDB read/write capacity
-- [ ] Enable DynamoDB point-in-time recovery
-- [ ] Use VPC endpoints for DynamoDB (if private)
-- [ ] Set up API Gateway in front (optional rate limiting)
 
 ## File Structure
 
