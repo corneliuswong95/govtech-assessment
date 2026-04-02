@@ -2,19 +2,6 @@
 
 A robust gift redemption service built with Express.js, featuring comprehensive input validation, error recovery, race condition handling, and support for multiple storage backends (Local JSON and DynamoDB).
 
-## Features
-
-✅ **Input Validation** - Request validation middleware with detailed error messages  
-✅ **Error Handling** - Custom error types mapped to proper HTTP status codes  
-✅ **Race Condition Safety** - Atomic conditional writes in DynamoDB  
-✅ **Retry Logic** - Exponential backoff for transient failures  
-✅ **Request Tracing** - Unique request IDs for all requests  
-✅ **Async/Await** - Fully async operations with proper error propagation  
-✅ **Logging** - Structured JSON logging with context (Winston)  
-✅ **Multiple Storage Backends** - Local file storage (dev) or DynamoDB (production)  
-✅ **Comprehensive Tests** - Unit, integration, and concurrency tests  
-✅ **Configuration Management** - Environment-based config with validation  
-
 ## Project Development
 
 ### Architecture & Design by Me | Implementation with AI Assistance
@@ -52,6 +39,19 @@ This project demonstrates the complementary strengths: **Human design thinking**
 - Each repository is independently testable and swappable (local or DynamoDB)
 
 These architectural decisions prioritize **data integrity**, **performance**, and **scalability** for production gift redemption workflows.
+
+## Features
+
+✅ **Input Validation** - Request validation middleware with detailed error messages  
+✅ **Error Handling** - Custom error types mapped to proper HTTP status codes  
+✅ **Race Condition Safety** - Atomic conditional writes in DynamoDB  
+✅ **Retry Logic** - Exponential backoff for transient failures  
+✅ **Request Tracing** - Unique request IDs for all requests  
+✅ **Async/Await** - Fully async operations with proper error propagation  
+✅ **Logging** - Structured JSON logging with context (Winston)  
+✅ **Multiple Storage Backends** - Local file storage (dev) or DynamoDB (production)  
+✅ **Comprehensive Tests** - Unit, integration, and concurrency tests  
+✅ **Configuration Management** - Environment-based config with validation  
 
 ## Architecture
 
